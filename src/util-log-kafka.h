@@ -12,7 +12,7 @@ typedef struct Kafka_ {
 
 int SCConfLogOpenKafka(ConfNode *, void *);
 int LogFileWriteKafka(void *, void *, size_t);
-void LogFileCloseKafka(void *log_ctx);
+void LogFileCloseKafka(void *);
 
 #endif  /* HAVE_LIBRDKAFKA */
 #endif  /* __UTIL_LOG_KAFKA_H__ */
