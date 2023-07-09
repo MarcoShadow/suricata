@@ -61,6 +61,7 @@
 #include "util-validate.h"
 #include "util-crypt.h"
 #include "util-plugin.h"
+#include "util-log-kafka.h"
 
 #include "flow-var.h"
 #include "flow-bit.h"
@@ -1084,6 +1085,12 @@ OutputInitResult OutputJsonInitCtx(ConfNode *conf)
                            FatalError(SC_ERR_FATAL,
                                       "redis JSON output option is not compiled");
 #endif
+            } else if (strcmp(output_s, "kafka") == 0) {
+#ifdef HAVE_LIBRDKAFKA
+                json_ctx->json_out = LOGFILE_TYPE_KAFKA;
+#else
+                FatalError(SC_ERR_FATAL, "kafka JSON output option is not compiled");
+#endif
             } else {
 #ifdef HAVE_PLUGINS
                 SCPluginFileType *plugin = SCPluginFindFileType(output_s);
@@ -1139,7 +1146,7 @@ OutputInitResult OutputJsonInitCtx(ConfNode *conf)
 
         }
 #ifndef OS_WIN32
-	else if (json_ctx->json_out == LOGFILE_TYPE_SYSLOG) {
+	    else if (json_ctx->json_out == LOGFILE_TYPE_SYSLOG) {
             const char *facility_s = ConfNodeLookupChildValue(conf, "facility");
             if (facility_s == NULL) {
                 facility_s = DEFAULT_ALERT_SYSLOG_FACILITY_STR;
@@ -1189,6 +1196,32 @@ OutputInitResult OutputJsonInitCtx(ConfNode *conf)
                 SCFree(output_ctx);
                 return result;
             }
+        }
+#endif
+#ifdef HAVE_LIBRDKAFKA
+        else if (json_ctx->json_out == LOGFILE_TYPE_KAFKA) {
+            ConfNode *kafka_node = ConfNodeLookupChild(conf, "kafka");
+            if (unlikely(kafka_node == NULL)) {
+                SCLogError(SC_ERR_KAFKA, "eve-log does not exist kafka config");
+                LogFileFreeCtx(json_ctx->file_ctx);
+                SCFree(json_ctx);
+                SCFree(output_ctx);
+                return result;
+            }
+
+            if (SCConfLogOpenKafka(kafka_node, json_ctx->file_ctx) != 0) {
+                SCLogError(SC_ERR_KAFKA, "Failed to init kafka");
+                LogFileFreeCtx(json_ctx->file_ctx);
+                SCFree(json_ctx);
+                SCFree(output_ctx);
+                return result;
+            }
+
+            const char *filetype = ConfNodeLookupChildValue(conf, "filetype");
+            if (unlikely(filetype == NULL)) {
+                filetype = KAFKA_LOG_FILE_TYPE;
+            }
+            SCLogInfo("%s output device (%s) initialized", conf->name, filetype);
         }
 #endif
         else if (json_ctx->json_out == LOGFILE_TYPE_PLUGIN) {

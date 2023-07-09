@@ -38,7 +38,8 @@ enum LogFileType { LOGFILE_TYPE_FILE,
                    LOGFILE_TYPE_UNIX_DGRAM,
                    LOGFILE_TYPE_UNIX_STREAM,
                    LOGFILE_TYPE_REDIS,
-                   LOGFILE_TYPE_PLUGIN };
+                   LOGFILE_TYPE_PLUGIN,
+                   LOGFILE_TYPE_KAFKA };
 
 typedef struct SyslogSetup_ {
     int alert_syslog_level;
@@ -60,6 +61,9 @@ typedef struct LogFileCtx_ {
         void *plugin_data;
 #ifdef HAVE_LIBHIREDIS
         void *redis;
+#endif
+#ifdef HAVE_LIBRDKAFKA
+        void *kafka;
 #endif
     };
 

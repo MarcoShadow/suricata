@@ -29,6 +29,7 @@
 
 #define DEFAULT_LOG_MODE_APPEND     "yes"
 #define DEFAULT_LOG_FILETYPE        "regular"
+#define KAFKA_LOG_FILE_TYPE         "kafka"
 
 #include "output-packet.h"
 #include "output-tx.h"

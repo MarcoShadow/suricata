@@ -380,6 +380,8 @@ const char * SCErrorToString(SCError err)
         CASE_CODE(SC_WARN_CHOWN);
         CASE_CODE(SC_ERR_HASH_ADD);
         CASE_CODE(SC_ERR_SIGNAL);
+        CASE_CODE(SC_ERR_KAFKA_CONFIG);
+        CASE_CODE(SC_ERR_KAFKA);
 
         CASE_CODE (SC_ERR_MAX);
     }

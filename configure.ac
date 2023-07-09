@@ -2321,6 +2321,46 @@
             [  --with-libevent-libraries=DIR    libevent library directory],
             [with_libevent_libraries="$withval"],[with_libevent_libraries="no"])
 
+    # librdkafka
+    AC_ARG_ENABLE(kafka,
+            AS_HELP_STRING([--enable-kafka], [Enable kafka support]),
+            [enable_kafka="$enableval"],[enable_kafka="no"])
+    AC_ARG_WITH(librdkafka_includes,
+            [  --with-librdkafka-includes=DIR librdkafka include directory],
+            [with_librdkafka_includes="withval"],[with_librdkafka_includes="no"])
+    AC_ARG_WITH(librdkafka_libraries,
+            [  --with-librdkafka-libraries=DIR librdkafka library directory],
+            [with_librdkafka_libraries="$withval"],[with_librdkafka_libraries="no"])
+
+    if test "$enable_kafka" == "yes"; then
+        if test "$with_librdkafka_includes" != "no"; then
+            CPPFLAGS="${CPPFLAGS} -I${with_librdkafka_includes}"
+        fi
+
+        AC_CHECK_HEADER("librdkafka/rdkafka.h",LIBRDKAFKA="yes",LIBRDKAFKA="no")
+        if test "$LIBRDKAFKA" == "yes"; then
+            if test "$with_librdkafka_libraries" != "no"; then
+                LDFLAGS="${LDFLAGS}  -L${with_librdkafka_libraries}"
+            fi
+            AC_CHECK_LIB(rdkafka, rd_kafka_new,, LIBRDKAFKA="no")
+        fi
+        if test "$LIBRDKAFKA" = "no"; then
+            echo
+            echo "   ERROR!  librdkafka library not found, go get it"
+            echo "   from https://github.com/confluentinc/librdkafka or your distribution:"
+            echo
+            echo "   Ubuntu: apt-get install librdkafka-dev"
+            echo "   Fedora: dnf --enablerepo=powertools install librdkafka-devel"
+            echo "   CentOS/RHEL: yum install librdkafka-devel"
+            echo
+            exit 1
+        fi
+        if test "$LIBRDKAFKA" = "yes"; then
+            AC_DEFINE([HAVE_LIBRDKAFKA],[1],[librdkafka available])
+            enable_kafka="yes"
+        fi
+    fi
+
 # libhiredis
     AC_ARG_ENABLE(hiredis,
 	        AS_HELP_STRING([--enable-hiredis],[Enable Redis support]),
@@ -2834,6 +2874,7 @@ SURICATA_BUILD_CONF="Suricata Configuration:
   libnss support:                          ${enable_nss}
   libnspr support:                         ${enable_nspr}
   libjansson support:                      ${enable_jansson}
+  librdkafka support:                      ${enable_kafka}
   hiredis support:                         ${enable_hiredis}
   hiredis async with libevent:             ${enable_hiredis_async}
   Prelude support:                         ${enable_prelude}

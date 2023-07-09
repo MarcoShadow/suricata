@@ -86,7 +86,7 @@ outputs:
   # Extensible Event Format (nicknamed EVE) event log in JSON format
   - eve-log:
       enabled: @e_enable_evelog@
-      filetype: regular #regular|syslog|unix_dgram|unix_stream|redis
+      filetype: regular #regular|syslog|unix_dgram|unix_stream|redis|kafka
       filename: eve.json
       # Enable for multi-threaded eve.json output; output files are amended with
       # with an identifier, e.g., eve.9.json
@@ -113,6 +113,17 @@ outputs:
       #  pipelining:
       #    enabled: yes ## set enable to yes to enable query pipelining
       #    batch-size: 10 ## number of entries to keep in buffer
+
+      kafka:
+        bootstrap.servers: 127.0.0.1:9092
+        topic: suricata
+        topic-configs:
+          compression.type: lz4
+        producer-configs:
+          # batch.size: 0
+          linger.ms: 100
+          queue.buffering.max.messages: 1000000
+        queue-full-retry: true
 
       # Include top level metadata. Default yes.
       #metadata: no

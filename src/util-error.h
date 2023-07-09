@@ -370,6 +370,8 @@ typedef enum {
     SC_WARN_CHOWN,
     SC_ERR_HASH_ADD,
     SC_ERR_SIGNAL,
+    SC_ERR_KAFKA_CONFIG,
+    SC_ERR_KAFKA,
 
     SC_ERR_MAX
 } SCError;

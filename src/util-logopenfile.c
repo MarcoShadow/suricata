@@ -40,6 +40,7 @@
 #ifdef HAVE_LIBHIREDIS
 #include "util-log-redis.h"
 #endif /* HAVE_LIBHIREDIS */
+#include "util-log-kafka.h"
 
 static bool LogFileNewThreadedCtx(LogFileCtx *parent_ctx, const char *log_path, const char *append, int i);
 static bool SCLogOpenThreadedFileFp(const char *log_path, const char *append, LogFileCtx *parent_ctx, int slot_count);
@@ -834,9 +835,16 @@ int LogFileFreeCtx(LogFileCtx *lf_ctx)
             if (lf_ctx->plugin->Close != NULL) {
                 lf_ctx->plugin->Close(lf_ctx->plugin_data);
             }
-        } else if (lf_ctx->fp != NULL) {
+        }
+#ifdef HAVE_LIBRDKAFKA
+        else if (lf_ctx->type == LOGFILE_TYPE_KAFKA) {
+            LogFileCloseKafka(lf_ctx);
+        }
+#endif
+        else if (lf_ctx->fp != NULL) {
             lf_ctx->Close(lf_ctx);
         }
+        
         if (lf_ctx->parent) {
             SCMutexLock(&lf_ctx->parent->threads->mutex);
             lf_ctx->parent->threads->lf_slots[lf_ctx->id] = NULL;
@@ -885,6 +893,12 @@ int LogFileWrite(LogFileCtx *file_ctx, MemBuffer *buffer)
         LogFileWriteRedis(file_ctx, (const char *)MEMBUFFER_BUFFER(buffer),
                 MEMBUFFER_OFFSET(buffer));
         SCMutexUnlock(&file_ctx->fp_mutex);
+    }
+#endif
+#ifdef HAVE_LIBRDKAFKA
+    else if (file_ctx->type == LOGFILE_TYPE_KAFKA) {
+        LogFileWriteKafka(file_ctx, (void *)MEMBUFFER_BUFFER(buffer),
+                MEMBUFFER_OFFSET(buffer));
     }
 #endif
     else if (file_ctx->type == LOGFILE_TYPE_PLUGIN) {
