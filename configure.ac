@@ -2327,11 +2327,7 @@
             [enable_kafka="$enableval"],[enable_kafka="no"])
     AC_ARG_WITH(librdkafka_includes,
             [  --with-librdkafka-includes=DIR librdkafka include directory],
-<<<<<<< HEAD
-            [with_librdkafka_includes="withval"],[with_librdkafka_includes="no"])
-=======
             [with_librdkafka_includes="$withval"],[with_librdkafka_includes="no"])
->>>>>>> a660ead12 (eve-log: add kafka output)
     AC_ARG_WITH(librdkafka_libraries,
             [  --with-librdkafka-libraries=DIR librdkafka library directory],
             [with_librdkafka_libraries="$withval"],[with_librdkafka_libraries="no"])
